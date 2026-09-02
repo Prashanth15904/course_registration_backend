@@ -1,6 +1,7 @@
 package Project.Course.Registration.System.Controller;
 
 
+import Project.Course.Registration.System.DTO.CourseRegistryResponse;
 import Project.Course.Registration.System.Entity.Course;
 import Project.Course.Registration.System.Entity.CourseRegistry;
 import Project.Course.Registration.System.Services.CourseService;
@@ -11,7 +12,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 @CrossOrigin(origins = {
         "http://localhost:5500",
-        "http://127.0.0.1:5500"
+        "http://127.0.0.1:5500",
+        "http://localhost:5173", // Add this for Vite
+        "http://127.0.0.1:5173"  // Add this for Vite
 })
 @RestController
 public class CourseController {
@@ -25,12 +28,23 @@ public class CourseController {
     }
 
     @PostMapping("/course/register")
-    public ResponseEntity<CourseRegistry> registerCourse(@RequestParam String username, @RequestParam String email, @RequestParam Integer courseId) {
+    public ResponseEntity<CourseRegistry> registerCourse(
+            @RequestParam String username,
+            @RequestParam String email,
+            @RequestParam Integer courseId) {
         try {
+            // Log the ID to debug
+            System.out.println("Registering: " + username + " for Course ID: " + courseId);
+
             CourseRegistry registry = courseService.enrollCourse(username, email, courseId);
             return ResponseEntity.ok(registry);
+        } catch (RuntimeException e) {
+            System.err.println("Backend Error: " + e.getMessage());
+            return ResponseEntity.status(404).body(null); // Better status code
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(null); // or return error message
+            System.err.println("Unexpected Error: " + e.getMessage());
+            e.printStackTrace(); // Check your backend console for the stack trace
+            return ResponseEntity.status(500).body(null);
         }
     }
 
@@ -54,5 +68,10 @@ public class CourseController {
     @GetMapping("/courses/{courseId}")
     public CourseRegistry getCourseDetail(@PathVariable Integer courseId) {
         return courseService.getCourse(courseId);
+    }
+
+    @GetMapping("/enrolledStudents")
+    public List<CourseRegistryResponse> enrolledStudents(){
+        return courseService.enrolledStudents();
     }
 }

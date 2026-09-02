@@ -13,7 +13,6 @@ public class CourseRegistry {
     @Column(unique = true)
     private String email;
 
-
     public CourseRegistry(String username, String email, Course course) {
         this.username = username;
         this.email = email;
